@@ -1,0 +1,32 @@
+{
+  "name": "hulk-olap",
+  "version": "1.0.0",
+  "description": "OLAP functionality for use with data visualizations. Aggregating and grouping data along key dimensions.",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src -d lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ajoabraham/hulk-olap.git"
+  },
+  "keywords": [
+    "olap",
+    "aggregate",
+    "group",
+    "by",
+    "data",
+    "visualization"
+  ],
+  "author": "Ajo Abraham",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ajoabraham/hulk-olap/issues"
+  },
+  "homepage": "https://github.com/ajoabraham/hulk-olap#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1"
+  }
+}
