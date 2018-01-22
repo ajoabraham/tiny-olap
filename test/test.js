@@ -1,5 +1,5 @@
 var assert = require('assert');
-var TinyOlap = require('../lib/').default
+var TinyOlap = require('../lib/')
 
 describe('TinyOlap Indexed Data', function() {
   
@@ -14,7 +14,6 @@ describe('TinyOlap Indexed Data', function() {
 
 	var olap1 = new TinyOlap(data)
 
-
 	describe('Group and Measure', function() {
 		var res = olap1.query()
 				    		.group("country")
@@ -26,6 +25,75 @@ describe('TinyOlap Indexed Data', function() {
 		});
 		it('should return pageviews sum of 15 for US', function() {
 		  	assert.equal(res[0].pageviews, 15);
+		});
+	});
+
+	describe('Group, Measure, and Order', function() {		
+		
+		it('should return result sorted asc by country', function() {
+			var res = olap1.query()
+				    		.group("country")
+				    		.measure({name: "pageviews",formula: "pageviews", agg: "sum"})
+				    		.order(['country'])
+				    		.run()	
+
+		  	assert.equal(res[0]['country'], 'ca');
+		  	assert.equal(res[1]['country'], 'mx');
+		});
+		it('should return result sorted desc by country', function() {
+			var res = olap1.query()
+				    		.group("country")
+				    		.measure({name: "pageviews",formula: "pageviews", agg: "sum"})
+				    		.order(['country'], ['desc'])
+				    		.run()	
+
+		  	assert.equal(res[0]['country'], 'us');
+		  	assert.equal(res[2]['country'], 'ca');
+		});
+	});
+
+	describe('Group Only', function() {
+		var res = olap1.query()				    		
+				    		.measure({name: "pageviews",formula: "pageviews", agg: "sum"})
+				    		.run()	
+
+		it('should return one row with one col', function() {
+		  	assert.equal(res.length, 1);
+		});
+		it('should return pageviews sum of 61', function() {
+		  	assert.equal(res[0].pageviews, 61);
+		});
+	});
+
+	describe('Filter', function() {
+		var res = olap1.query()
+				    		.group("country")
+				    		.measure({name: "pageviews",formula: "pageviews", agg: "sum"})
+				    		.filter(['country', 'us'])
+				    		.run()	
+
+		it('should filter on array', function() {					
+		  	assert.equal(res.length, 1);
+		});
+		it('should filter only', function() {	
+			var res2 = olap1.query()
+				 .filter(['country', 'us'])
+				 .run()				
+		  	assert.equal(res2.length, 2);
+		});
+		it('should filter only multi array', function() {	
+			var res3 = olap1.query()
+				 .filter([ ['country', 'us'], ['country', 'mx'] ])
+				 .run()			
+		  	assert.equal(res3.length, 4);
+		});
+		it('should filter only with function', function() {	
+			var res3 = olap1.query()
+				 .filter((row) => {
+				 	return row['country'] == 'us' || row['country'] == 'mx'
+				 })
+				 .run()			
+		  	assert.equal(res3.length, 4);
 		});
 	});
 
@@ -56,6 +124,19 @@ describe('TinyOlap Indexed Sparse Data', function() {
 		});
 		it('should return pageviews sum of 25 for US', function() {
 		  	assert.equal(res[0].pageviews, 25);
+		});
+	});
+
+	describe('Group Only', function() {
+		var res = olap1.query()				    		
+				    		.measure({name: "pageviews",formula: "pageviews", agg: "sum"})
+				    		.run()	
+
+		it('should return one row with one col', function() {
+		  	assert.equal(res.length, 1);
+		});
+		it('should return pageviews sum of 61', function() {
+		  	assert.equal(res[0].pageviews, 61);
 		});
 	});
 
@@ -91,6 +172,30 @@ describe('TinyOlap UnIndexed Data', function() {
 		});
 	});
 
+	describe('Group Only', function() {
+		var res = olap1.query()				    		
+				    		.measure({name: "pageviews",formula: "pageviews", agg: "sum"})
+				    		.run()	
+
+		it('should return one row with one col', function() {
+		  	assert.equal(res.length, 1);
+		});
+		it('should return pageviews sum of 61', function() {
+		  	assert.equal(res[0][0], 61);
+		});
+	});
+
+	it('should return result sorted asc by country', function() {
+			var res = olap1.query()
+				    		.group("country")
+				    		.measure({name: "pageviews",formula: "pageviews", agg: "sum"})
+				    		.order(['country'])
+				    		.run()	
+
+		  	assert.equal(res[0][0], 'ca');
+		  	assert.equal(res[1][0], 'mx');
+	});
+
 });
 
 describe('TinyOlap Sparse Data', function() {
@@ -116,6 +221,7 @@ describe('TinyOlap Sparse Data', function() {
 				    			{name: "signups", formula: "signups",agg: "count"},
 				    			{name: "paid", formula: "paid",agg: "max"},
 				    			{name: "signups2",formula: "signups", agg: "sum"},
+				    			{name: "avg paid",formula: "paid", agg: "avg"},
 				    		])
 				    		.run()	
 		
@@ -130,6 +236,9 @@ describe('TinyOlap Sparse Data', function() {
 		it('should not count null/undfined and sum should only sum nums', function() {
 		  	assert.equal(res[0][2], 1);
 		  	assert.equal(res[0][4], 2);
+		});
+		it('should return avg ignoring invalid values', function() {
+		  	assert.equal(res[0][5], 5.5);
 		});
 	});
 

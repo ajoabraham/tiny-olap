@@ -1,4 +1,4 @@
-import { groupBy, join, forEach , filter, 
+import { groupBy, join, forEach , filter, orderBy, 
 	findIndex, indexOf, fill, isArray, isNil} from 'lodash'
 import numeral from 'numeral'
 
@@ -9,6 +9,7 @@ class Query {
 			filters: [],
 			having: [],
 			order: [],
+			orderDir: [],
 			measures: []
 		}
 		this.cube = cube
@@ -44,12 +45,25 @@ class Query {
 	}
 
 	filter(f = []){
-		if(isArray(f)){
-			this.q.filters = this.q.filters.concat(f)
-		}else{
-			this.q.filters.push(f)
+		if(isArray(f) && f.length == 2 && typeof f[1] != "function" && !isArray(f[1])){
+			f = [f]
+		}else if (typeof f == "function"){
+			f = [f]
 		}
-		
+
+
+		let _this = this
+		forEach(f, (fil) => {
+			if(isArray(fil) && fil.length == 2 && typeof fil[1] != "function"){
+				_this.q.filters.push(function(row,headers){
+					return row[_this.cube.getIndex(fil[0])] == fil[1]
+				})
+			}else if(isArray(fil)){
+				this.q.filters = this.q.filters.concat(fil)
+			}else{
+				this.q.filters.push(fil)
+			}
+		})
 		return this
 	}
 
@@ -63,8 +77,29 @@ class Query {
 		return this
 	}
 
-	order(sorts){
-		this.q.order = this.q.order.concat(sorts)
+	order(cols, direction = []){
+
+		if(direction.length == 0 ){
+			forEach(cols, (c) => this.q.orderDir.push('asc'))
+		}else{
+			this.q.orderDir = this.q.orderDir.concat(direction)
+		}
+
+		if(!this.cube.isObjectRow){
+			forEach(cols, (c) => {
+				if(typeof c == "function"){
+					this.q.order.push(c)
+				}else{
+					let cube = this.cube
+					this.q.order.push(function(o){
+						return o[cube.getIndex(c)]
+					})
+				}
+			})
+		}else{
+			this.q.order = this.q.order.concat(cols)
+		}		
+		
 		return this
 	}
 
@@ -73,7 +108,7 @@ class Query {
 	}
 }
 
-export default class TinyOlap {
+export class TinyOlap {
 
 	/**
 	 *	Create a TinyOlap object to be repeatedly used to slice and dice data
@@ -97,16 +132,17 @@ export default class TinyOlap {
 	}
 
 	filter(filters, data){
-		if(data == undefined) data = this.data
-
+		let _this = this
 		if(filters.length > 0){
 			data = filter(data, (row)=>{
-				let include = true
-				forEach(filters, (f) => f(row, this.headers) ? true : include=false)
+
+				let include = false
+				forEach(filters, (f) => {		
+					f(row, _this.headers) ? include=true : false
+				})
 				return include
 			})
 		}
-
 		return data
 	}
 
@@ -128,14 +164,17 @@ export default class TinyOlap {
 		let headers = this.headers
 		let _this = this
 
-		data = this.filter(q.filters, data)
+		data = _this.filter(q.filters, data)
+
+		if(q.groups.length ==0 && q.measures.length == 0){
+			return data
+		}
 
 		let res = groupBy(data, function(row){
 			let  mFields = q.groups.map((g) => typeof g=="function" ? g(row) : row[_this.getIndex(g)])
 			return join(mFields, "_#_")
 		})
-		console.log(res)
-
+		
 		let result = []
 		forEach(res, function(values,key) {
 			forEach(measures, (f) => {
@@ -166,6 +205,9 @@ export default class TinyOlap {
 							case "avg":
 							case "sum":
 								f.sum = f.sum + numeral(fieldVal).value()
+								if(!isNil(fieldVal) && (fieldVal +"").trim() != ""){
+									f.count++
+								}
 								break
 							case "min":
 								f.min = Math.min(numeral(fieldVal).value(), f.min)
@@ -186,7 +228,7 @@ export default class TinyOlap {
 
 			forEach(measures, (f,idx) =>{
 				let col = _this.isObjectRow ? f.name : q.groups.length + idx
-				console.log(col)
+				
 				switch(f.agg){
 					case "avg":
 						row[col] = f.sum / f.count
@@ -207,11 +249,16 @@ export default class TinyOlap {
 						row[col] = null
 				}
 			})
-			console.log("proc meausrs", row)
 			result.push(row)
 		})
-		console.log(result)
+		
+		if(q.order.length>0){
+			result = orderBy(result, q.order, q.orderDir)
+		}
+
 		return result
 
 	}
 }
+
+module.exports = TinyOlap
