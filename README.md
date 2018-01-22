@@ -3,28 +3,44 @@ OLAP functionality for use with data visualizations. Aggregate, filter, and grou
 
 # Getting Started
 
-With an indexed dataset like the following
+Given the following sample for the proceeding examples:
 
-```json
+```javascript
   var data = [
-	 {country: "us", date: "2012-02-03", pageviews: 10, signups: 2, paid: 3}
-	,{country: "ca", date: "2012-02-03", pageviews: 20, signups: 1, paid: 5}
-	,{country: "mx", date: "2012-02-03", pageviews: 6, signups: 0, paid: 1}
-	,{country: "us", date: "2012-02-04", pageviews: 5, signups: 2, paid: 3}
-	,{country: "ca", date: "2012-02-04", pageviews: 10, signups: 6, paid: 5}
-	,{country: "mx", date: "2012-02-04", pageviews: 10, signups: 3, paid: 5}
+	 {"country": "us", "date": "2012-02-03", "gender": "m", "pageviews": 10, "signups": 2, "paid": 3}
+	,{"country": "ca", "date": "2012-02-03", "gender": "m", "pageviews": 20, "signups": 1, "paid": 5}
+	,{"country": "mx", "date": "2012-02-03", "gender": "m", "pageviews": 6, "signups": 0, "paid": 1}
+	,{"country": "mx", "date": "2012-02-03", "gender": "f", "pageviews": 2, "signups": 1, "paid": 0}
+	,{"country": "mx", "date": "2012-02-03", "gender": "m", "pageviews": 6, "signups": 0, "paid": 1}
+	,{"country": "mx", "date": "2012-02-03", "gender": "m", "pageviews": 6, "signups": 0, "paid": 1}
+	,{"country": "mx", "date": "2012-02-03", "gender": "m", "pageviews": 6, "signups": 0, "paid": 1}
   ]
  ```
 
-Group and aggregate
+### Group and aggregate
 
 ```javascript
 
-var TinyOlap = require('tiny-olap')
-var olap = new TinyOlap(data)
+var TinyOlap = require('tiny-olap');
+var olap = new TinyOlap(data);
 
 var result = olap.query()
-				 .group('country')
-				 .measure({name: 'pageviews', formula: 'pageviews', agg: 'sum'})
+		.group('country')
+		.measure({name: 'pageviews', formula: 'pageviews', agg: 'sum'})
+		.run();
+
+```
+
+### Group by Multiple Dimensions
+
+```javascript
+
+var TinyOlap = require('tiny-olap');
+var olap = new TinyOlap(data);
+
+var result = olap.query()
+		.group(['country', 'gender'])
+		.measure({name: 'pageviews', formula: 'pageviews', agg: 'sum'})
+		.run();
 
 ```

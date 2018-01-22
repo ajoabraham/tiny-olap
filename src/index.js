@@ -117,9 +117,9 @@ export class TinyOlap {
 	 */
 	constructor(data, headers = []){
 		this.data = data
-		this.headers = headers
-
+		
 		this.isObjectRow = typeof this.data[0] == "object" && isArray(this.data[0]) == false
+		this.headers = this.isObjectRow ? [] : headers
 
 		if(!this.isObjectRow && this.headers.length == 0){
 			throw "Each row should be an object or you should provide a list of headers"

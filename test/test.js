@@ -243,3 +243,37 @@ describe('TinyOlap Sparse Data', function() {
 	});
 
 });
+
+describe('TinyOlap MultiDimensional', function() {
+  
+	var data = [
+		 {"country": "us", "date": "2012-02-03", "gender": "m", "pageviews": 10, "signups": 2, "paid": 3}
+		,{"country": "ca", "date": "2012-02-03", "gender": "m", "pageviews": 20, "signups": 1, "paid": 5}
+		,{"country": "mx", "date": "2012-02-03", "gender": "m", "pageviews": 6, "signups": 0, "paid": 1}
+		,{"country": "mx", "date": "2012-02-03", "gender": "f", "pageviews": 2, "signups": 1, "paid": 0}
+		,{"country": "mx", "date": "2012-02-03", "gender": "m", "pageviews": 6, "signups": 0, "paid": 1}
+		,{"country": "mx", "date": "2012-02-03", "gender": "m", "pageviews": 6, "signups": 0, "paid": 1}
+		,{"country": "ca", "date": "2012-02-03", "gender": "m", "pageviews": 6, "signups": 0, "paid": 1}
+	  ]
+
+	var olap1 = new TinyOlap(data)
+
+
+	describe('Group and Measure', function() {
+		var res = olap1.query()
+				    		.group(["country", "gender"])
+				    		.measure([
+				    			{name: "pageviews",formula: "pageviews", agg: "sum"},
+				    			{name: "avg paid",formula: "paid", agg: "avg"},
+				    		])
+				    		.run()	
+
+		
+		it('should return country and date grouped', function() {		
+			// nulls are aggregated into undfined			
+		  	assert.equal(res.length, 4);
+		  	assert.equal(res[0].gender, "m");
+		});
+	});
+
+});
