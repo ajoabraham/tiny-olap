@@ -1,6 +1,6 @@
 {
   "name": "tiny-olap",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "OLAP functionality for use with data visualizations. Aggregating and grouping data along key dimensions.",
   "main": "index.js",
   "scripts": {
