@@ -1,5 +1,5 @@
 var assert = require('assert');
-var TinyOlap = require('../lib/')
+var TinyOlap = require('../tiny-olap')
 
 describe('TinyOlap Indexed Data', function() {
   
