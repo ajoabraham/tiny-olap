@@ -4,7 +4,7 @@
   "description": "OLAP functionality for use with data visualizations. Aggregating and grouping data along key dimensions.",
   "main": "index.js",
   "scripts": {
-    "build": "babel src --out-file tiny-olap.js",
+    "build": "babel src --out-file index.js",
     "test": "npm run build && mocha"
   },
   "repository": {
