@@ -198,7 +198,7 @@ export class TinyOlap {
 			
 			forEach(values, (val) => {
 				forEach(measures, (f) => {				
-					let fieldVal = typeof f.formula == "function" ? f.formula.call(val) : val[_this.getIndex(f.formula)]
+					let fieldVal = typeof f.formula == "function" ? f.formula(val) : val[_this.getIndex(f.formula)]
 
 					if(fieldVal){						
 						switch(f.agg){

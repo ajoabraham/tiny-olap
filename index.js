@@ -259,7 +259,7 @@ var TinyOlap = exports.TinyOlap = function () {
 
 				(0, _lodash.forEach)(values, function (val) {
 					(0, _lodash.forEach)(measures, function (f) {
-						var fieldVal = typeof f.formula == "function" ? f.formula.call(val) : val[_this.getIndex(f.formula)];
+						var fieldVal = typeof f.formula == "function" ? f.formula(val) : val[_this.getIndex(f.formula)];
 
 						if (fieldVal) {
 							switch (f.agg) {
